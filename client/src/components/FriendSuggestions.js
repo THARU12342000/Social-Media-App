@@ -29,7 +29,9 @@ const FriendSuggestions = () => {
     try {
       setLoading(true);
       const response = await axios.get('/api/users/suggestions');
-      if (response && response.data) {
+      if (response?.data?.data) {
+        setSuggestions(response.data.data);
+      } else if (response?.data) {
         setSuggestions(Array.isArray(response.data) ? response.data : []);
       } else {
         setSuggestions([]);
@@ -99,9 +101,14 @@ const FriendSuggestions = () => {
           <ListItemAvatar>
             <Avatar 
               src={user.profilePicture || defaultAvatar}
-              alt={user.name}
+              alt={user.name || 'User'}
+              imgProps={{
+                onError: (e) => {
+                  e.target.src = defaultAvatar;
+                }
+              }}
             >
-              {user.name?.charAt(0)}
+              {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
             </Avatar>
           </ListItemAvatar>
           <ListItemText

@@ -8,7 +8,9 @@ const postSchema = new mongoose.Schema({
   },
   content: {
     type: String,
-    required: [true, 'Please add some content']
+    required: function() {
+      return !this.image; // Content is required only if there's no image
+    }
   },
   image: {
     type: String

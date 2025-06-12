@@ -22,6 +22,7 @@ import {
   MoreVert as MoreVertIcon
 } from '@mui/icons-material';
 import { formatDistanceToNow } from 'date-fns';
+import defaultAvatar from '../assets/default-avatar.svg';
 
 const Post = ({ post = {} }) => {
   const [liked, setLiked] = useState(post?.likes?.includes(localStorage.getItem('userId')) || false);
@@ -60,63 +61,75 @@ const Post = ({ post = {} }) => {
   };
 
   return (
-    <Card sx={{ mb: 2, borderRadius: 2 }}>
+    <Card sx={{ mb: 2 }}>
       <CardHeader
         avatar={
-          <Avatar src={post.author?.profilePicture}>
-            {post.author?.name?.charAt(0)}
+          <Avatar 
+            src={post.author?.profilePicture || defaultAvatar}
+            alt={post.author?.name || 'User'}
+            imgProps={{
+              onError: (e) => {
+                e.target.src = defaultAvatar;
+              }
+            }}
+          >
+            {post.author?.name ? post.author.name.charAt(0).toUpperCase() : 'U'}
           </Avatar>
         }
         action={
-          <IconButton>
+          <IconButton aria-label="settings">
             <MoreVertIcon />
           </IconButton>
         }
         title={post.author?.name || 'Unknown User'}
-        subheader={post.createdAt ? formatDistanceToNow(new Date(post.createdAt), { addSuffix: true }) : 'Recently'}
+        subheader={formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}
       />
-      
-      {post.image && (
-        <Box
-          component="img"
-          sx={{
-            width: '100%',
-            height: 'auto',
-            maxHeight: 500,
-            objectFit: 'cover'
-          }}
-          src={post.image}
-          alt="Post"
-        />
+      {post.content && (
+        <CardContent>
+          <Typography variant="body1">{post.content}</Typography>
+        </CardContent>
       )}
-
-      <CardContent>
-        <Typography variant="body1">{post.content}</Typography>
-      </CardContent>
-
+      {post.image && (
+        <Box sx={{ position: 'relative', paddingTop: '56.25%' }}>
+          <img
+            src={post.image}
+            alt="Post content"
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover'
+            }}
+          />
+        </Box>
+      )}
       <CardActions disableSpacing>
-        <IconButton onClick={handleLike} color={liked ? "primary" : "default"}>
+        <IconButton 
+          aria-label="like"
+          onClick={handleLike}
+          color={liked ? 'primary' : 'default'}
+        >
           {liked ? <FavoriteIcon /> : <FavoriteBorderIcon />}
         </IconButton>
         <Typography variant="body2" color="text.secondary">
           {likesCount} {likesCount === 1 ? 'like' : 'likes'}
         </Typography>
-        
-        <IconButton 
+        <IconButton
+          aria-label="comment"
           onClick={() => setShowComments(!showComments)}
-          sx={{ ml: 2 }}
+          sx={{ ml: 1 }}
         >
           <CommentIcon />
         </IconButton>
         <Typography variant="body2" color="text.secondary">
           {comments.length} {comments.length === 1 ? 'comment' : 'comments'}
         </Typography>
-
-        <IconButton sx={{ ml: 'auto' }}>
+        <IconButton aria-label="share" sx={{ ml: 1 }}>
           <ShareIcon />
         </IconButton>
       </CardActions>
-
       <Collapse in={showComments} timeout="auto" unmountOnExit>
         <Divider />
         <Box sx={{ p: 2 }}>
@@ -129,36 +142,32 @@ const Post = ({ post = {} }) => {
               onChange={(e) => setComment(e.target.value)}
               sx={{ mb: 2 }}
             />
-            <Button 
-              type="submit" 
-              variant="contained" 
-              size="small"
-              disabled={!comment.trim()}
-            >
-              Post Comment
-            </Button>
           </form>
-
-          <Box sx={{ mt: 2 }}>
-            {comments.map((comment, index) => (
-              <Box key={comment._id || index} sx={{ mb: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-                  <Avatar
-                    src={comment.author?.profilePicture}
-                    sx={{ width: 24, height: 24, mr: 1 }}
-                  >
-                    {comment.author?.name?.charAt(0)}
-                  </Avatar>
-                  <Typography variant="subtitle2">
-                    {comment.author?.name || 'Unknown User'}
-                  </Typography>
-                </Box>
-                <Typography variant="body2" sx={{ pl: 4 }}>
-                  {comment.content}
+          {comments.map((comment, index) => (
+            <Box key={index} sx={{ mb: 2, display: 'flex', alignItems: 'start' }}>
+              <Avatar
+                src={comment.user?.profilePicture || defaultAvatar}
+                alt={comment.user?.name || 'User'}
+                sx={{ width: 32, height: 32, mr: 1 }}
+                imgProps={{
+                  onError: (e) => {
+                    e.target.src = defaultAvatar;
+                  }
+                }}
+              >
+                {comment.user?.name ? comment.user.name.charAt(0).toUpperCase() : 'U'}
+              </Avatar>
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="subtitle2">
+                  {comment.user?.name || 'Unknown User'}
+                </Typography>
+                <Typography variant="body2">{comment.content}</Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
                 </Typography>
               </Box>
-            ))}
-          </Box>
+            </Box>
+          ))}
         </Box>
       </Collapse>
     </Card>

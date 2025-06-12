@@ -6,22 +6,41 @@ const User = require('../models/User');
 // @access  Private
 exports.createPost = async (req, res, next) => {
   try {
-    const { content, privacy, images } = req.body;
-    
+    const { content, privacy } = req.body;
+    let image = null;
+
+    // Handle file upload if present
+    if (req.file) {
+      image = `/uploads/${req.file.filename}`;
+    }
+
+    // Validate that either content or image is present
+    if (!content && !image) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide either content or an image'
+      });
+    }
+
     const post = await Post.create({
       user: req.user.id,
       content,
-      privacy,
-      images
+      image,
+      privacy: privacy || 'public'
     });
 
-    const populatedPost = await post.populate('user', 'username profilePicture');
+    const populatedPost = await post.populate([
+      { path: 'user', select: 'name profilePicture' },
+      { path: 'comments.user', select: 'name profilePicture' },
+      { path: 'likes', select: 'name profilePicture' }
+    ]);
 
     res.status(201).json({
       success: true,
       data: populatedPost
     });
   } catch (error) {
+    console.error('Create post error:', error);
     next(error);
   }
 };
@@ -37,7 +56,14 @@ exports.getFeed = async (req, res, next) => {
 
     // Get user's friends
     const user = await User.findById(req.user.id);
-    const friends = user.friends;
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const friends = user.friends || [];
 
     // Get posts from user and friends
     const posts = await Post.find({
@@ -50,9 +76,9 @@ exports.getFeed = async (req, res, next) => {
       .sort('-createdAt')
       .skip(startIndex)
       .limit(limit)
-      .populate('user', 'username profilePicture')
-      .populate('comments.user', 'username profilePicture')
-      .populate('likes', 'username profilePicture');
+      .populate('user', 'name profilePicture')
+      .populate('comments.user', 'name profilePicture')
+      .populate('likes', 'name profilePicture');
 
     // Get total posts count for pagination
     const total = await Post.countDocuments({
@@ -74,6 +100,7 @@ exports.getFeed = async (req, res, next) => {
       }
     });
   } catch (error) {
+    console.error('Get feed error:', error);
     next(error);
   }
 };
