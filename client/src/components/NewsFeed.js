@@ -58,10 +58,18 @@ const NewsFeed = () => {
       else setLoadingMore(true);
 
       const response = await axios.get(`/api/posts?page=${pageNum}&limit=10`);
-      const newPosts = response.data.posts;
       
-      setPosts(prev => pageNum === 1 ? newPosts : [...prev, ...newPosts]);
-      setHasMore(newPosts.length === 10);
+      // Check if response has data property and it contains posts
+      if (response?.data?.data) {
+        setPosts(response.data.data);
+      } else if (response?.data) {
+        // If data is directly in response.data
+        setPosts(Array.isArray(response.data) ? response.data : []);
+      } else {
+        setPosts([]);
+      }
+      
+      setHasMore(response.data.posts.length === 10);
       setError(null);
     } catch (err) {
       console.error('Error fetching posts:', err);

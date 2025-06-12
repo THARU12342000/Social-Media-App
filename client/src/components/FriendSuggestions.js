@@ -10,9 +10,11 @@ import {
   Avatar,
   Button,
   Skeleton,
+  Alert
 } from '@mui/material';
 import { PersonAdd as PersonAddIcon } from '@mui/icons-material';
 import axios from '../utils/axios';
+import defaultAvatar from '../assets/default-avatar.svg';
 
 const FriendSuggestions = () => {
   const [suggestions, setSuggestions] = useState([]);
@@ -25,12 +27,18 @@ const FriendSuggestions = () => {
 
   const fetchSuggestions = async () => {
     try {
+      setLoading(true);
       const response = await axios.get('/api/users/suggestions');
-      setSuggestions(response.data);
+      if (response && response.data) {
+        setSuggestions(Array.isArray(response.data) ? response.data : []);
+      } else {
+        setSuggestions([]);
+      }
       setError(null);
     } catch (err) {
-      setError('Failed to load suggestions');
       console.error('Error fetching suggestions:', err);
+      setError('Unable to load friend suggestions');
+      setSuggestions([]);
     } finally {
       setLoading(false);
     }
@@ -43,6 +51,7 @@ const FriendSuggestions = () => {
       setSuggestions(prev => prev.filter(user => user._id !== userId));
     } catch (err) {
       console.error('Error sending friend request:', err);
+      setError('Failed to send friend request');
     }
   };
 
@@ -69,9 +78,9 @@ const FriendSuggestions = () => {
 
   if (error) {
     return (
-      <Typography color="error" variant="body2">
+      <Alert severity="error" sx={{ mb: 2 }}>
         {error}
-      </Typography>
+      </Alert>
     );
   }
 
@@ -88,12 +97,15 @@ const FriendSuggestions = () => {
       {suggestions.map((user) => (
         <ListItem key={user._id}>
           <ListItemAvatar>
-            <Avatar src={user.profilePicture}>
-              {user.name.charAt(0)}
+            <Avatar 
+              src={user.profilePicture || defaultAvatar}
+              alt={user.name}
+            >
+              {user.name?.charAt(0)}
             </Avatar>
           </ListItemAvatar>
           <ListItemText
-            primary={user.name}
+            primary={user.name || 'Unknown User'}
             secondary={`${user.mutualFriends || 0} mutual friends`}
           />
           <ListItemSecondaryAction>
