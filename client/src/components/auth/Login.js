@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import './Auth.css';
 
@@ -11,13 +11,20 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { login, error, clearError, user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
     if (user) {
       navigate('/');
     }
+    if (location.state?.message) {
+      setSuccessMessage(location.state.message);
+      // Clear the message from location state
+      window.history.replaceState({}, document.title);
+    }
     return () => clearError();
-  }, [user, navigate, clearError]);
+  }, [user, navigate, clearError, location]);
 
   const handleChange = (e) => {
     setFormData({
@@ -43,6 +50,7 @@ const Login = () => {
     <div className="auth-container">
       <div className="auth-box">
         <h2>Login</h2>
+        {successMessage && <div className="success-message">{successMessage}</div>}
         {error && <div className="error-message">{error}</div>}
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
@@ -68,6 +76,12 @@ const Login = () => {
               required
               placeholder="Enter your password"
             />
+            <span 
+              onClick={() => navigate('/forgot-password')} 
+              className="auth-link forgot-password"
+            >
+              Forgot Password?
+            </span>
           </div>
           <button type="submit" className="auth-button" disabled={isLoading}>
             {isLoading ? 'Logging in...' : 'Login'}

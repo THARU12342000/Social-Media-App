@@ -4,8 +4,10 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const authRoutes = require('./routes/auth'); // make sure this points to a JS file
 
-const app = express();
+// Load env vars
 dotenv.config();
+
+const app = express();
 
 // Middleware
 app.use(cors());
@@ -28,20 +30,40 @@ app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
 
-// MongoDB connect with better error handling
-mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => {
-    console.log('MongoDB connected');
-    const PORT = process.env.PORT || 5000;
+// MongoDB connection with retry logic
+const connectDB = async (retries = 5, timeout = 5000) => {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:27017/social-media-app';
+      await mongoose.connect(mongoURI, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      });
+      console.log('MongoDB connected successfully');
+      return true;
+    } catch (err) {
+      console.error(`MongoDB connection attempt ${i + 1} failed:`, err.message);
+      if (i < retries - 1) {
+        console.log(`Retrying in ${timeout/1000} seconds...`);
+        await new Promise(resolve => setTimeout(resolve, timeout));
+      }
+    }
+  }
+  return false;
+};
+
+// Start server
+const PORT = process.env.PORT || 5000;
+const startServer = async () => {
+  const isConnected = await connectDB();
+  if (isConnected) {
     app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
+      console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
     });
-  })
-  .catch((err) => {
-    console.error('MongoDB connection error:', err);
+  } else {
+    console.error('Could not connect to MongoDB. Server will not start.');
     process.exit(1);
-  });
+  }
+};
+
+startServer();
