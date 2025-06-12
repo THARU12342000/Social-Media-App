@@ -27,13 +27,82 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: 'default-avatar.png'
   },
+  coverPhoto: {
+    type: String,
+    default: 'default-cover.png'
+  },
+  bio: {
+    type: String,
+    maxlength: [250, 'Bio cannot be more than 250 characters']
+  },
+  location: String,
+  birthday: Date,
+  friends: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
+  friendRequests: [{
+    from: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    status: {
+      type: String,
+      enum: ['pending', 'accepted', 'rejected'],
+      default: 'pending'
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+  notifications: [{
+    type: {
+      type: String,
+      enum: ['friendRequest', 'like', 'comment', 'share'],
+      required: true
+    },
+    from: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+    post: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Post'
+    },
+    read: {
+      type: Boolean,
+      default: false
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
   resetPasswordToken: String,
   resetPasswordExpire: Date,
   createdAt: {
     type: Date,
     default: Date.now
+  },
+  isOnline: {
+    type: Boolean,
+    default: false
+  },
+  lastActive: {
+    type: Date,
+    default: Date.now
   }
+}, {
+  timestamps: true
 });
+
+// Add indexes for better query performance
+userSchema.index({ username: 1 });
+userSchema.index({ email: 1 });
+userSchema.index({ 'friendRequests.from': 1, 'friendRequests.status': 1 });
+userSchema.index({ 'notifications.read': 1, 'notifications.createdAt': -1 });
 
 // Hash password before saving
 userSchema.pre('save', async function(next) {
@@ -68,6 +137,21 @@ userSchema.methods.getResetPasswordToken = function() {
   this.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
 
   return resetToken;
+};
+
+// Method to get public profile
+userSchema.methods.getPublicProfile = function() {
+  return {
+    id: this._id,
+    username: this.username,
+    profilePicture: this.profilePicture,
+    coverPhoto: this.coverPhoto,
+    bio: this.bio,
+    location: this.location,
+    isOnline: this.isOnline,
+    lastActive: this.lastActive,
+    friendsCount: this.friends.length
+  };
 };
 
 module.exports = mongoose.model('User', userSchema);

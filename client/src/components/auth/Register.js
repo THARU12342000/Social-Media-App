@@ -17,7 +17,7 @@ const Register = () => {
 
   useEffect(() => {
     if (user) {
-      navigate('/');
+      navigate('/home');
     }
     return () => clearError();
   }, [user, navigate, clearError]);
@@ -54,7 +54,11 @@ const Register = () => {
     try {
       const { confirmPassword, ...registerData } = formData;
       await register(registerData);
-      navigate('/');
+      navigate('/login', { 
+        state: { 
+          message: 'Registration successful! Please login with your credentials.' 
+        }
+      });
     } catch (err) {
       console.error('Registration error:', err);
     } finally {
@@ -65,7 +69,7 @@ const Register = () => {
   return (
     <div className="auth-container">
       <div className="auth-box">
-        <h2>Register</h2>
+        <h2>Create Account</h2>
         {(error || validationError) && (
           <div className="error-message">{error || validationError}</div>
         )}

@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const authRoutes = require('./routes/auth'); // make sure this points to a JS file
+const postRoutes = require('./routes/posts');
 
 // Load env vars
 dotenv.config();
@@ -15,6 +16,7 @@ app.use(express.json()); // parse JSON request bodies
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/posts', postRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
