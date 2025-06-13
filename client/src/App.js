@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { CssBaseline } from '@mui/material';
+import { CssBaseline, Box, useTheme, useMediaQuery } from '@mui/material';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
@@ -23,6 +23,9 @@ const router = {
 };
 
 const App = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
   return (
     <ThemeProvider>
       <AuthProvider>
@@ -30,45 +33,63 @@ const App = () => {
           <CssBaseline />
           <Router future={router.future}>
             <ShortcutProvider>
-              <Navbar />
-              <AnimatePresence mode="wait">
-                <Routes>
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/register" element={<Register />} />
-                  <Route
-                    path="/"
-                    element={
-                      <PrivateRoute>
-                        <Home />
-                      </PrivateRoute>
-                    }
-                  />
-                  <Route
-                    path="/home"
-                    element={
-                      <PrivateRoute>
-                        <Home />
-                      </PrivateRoute>
-                    }
-                  />
-                  <Route
-                    path="/profile"
-                    element={
-                      <PrivateRoute>
-                        <Profile />
-                      </PrivateRoute>
-                    }
-                  />
-                  <Route
-                    path="/settings"
-                    element={
-                      <PrivateRoute>
-                        <Settings />
-                      </PrivateRoute>
-                    }
-                  />
-                </Routes>
-              </AnimatePresence>
+              <Box sx={{ 
+                display: 'flex', 
+                flexDirection: 'column',
+                minHeight: '100vh',
+                bgcolor: 'background.default'
+              }}>
+                <Navbar />
+                <Box 
+                  component="main" 
+                  sx={{ 
+                    flexGrow: 1,
+                    p: isMobile ? 1 : 2,
+                    maxWidth: '100%',
+                    mx: 'auto',
+                    width: '100%'
+                  }}
+                >
+                  <AnimatePresence mode="wait">
+                    <Routes>
+                      <Route path="/login" element={<Login />} />
+                      <Route path="/register" element={<Register />} />
+                      <Route
+                        path="/"
+                        element={
+                          <PrivateRoute>
+                            <Home />
+                          </PrivateRoute>
+                        }
+                      />
+                      <Route
+                        path="/home"
+                        element={
+                          <PrivateRoute>
+                            <Home />
+                          </PrivateRoute>
+                        }
+                      />
+                      <Route
+                        path="/profile"
+                        element={
+                          <PrivateRoute>
+                            <Profile />
+                          </PrivateRoute>
+                        }
+                      />
+                      <Route
+                        path="/settings"
+                        element={
+                          <PrivateRoute>
+                            <Settings />
+                          </PrivateRoute>
+                        }
+                      />
+                    </Routes>
+                  </AnimatePresence>
+                </Box>
+              </Box>
             </ShortcutProvider>
           </Router>
         </NotificationProvider>

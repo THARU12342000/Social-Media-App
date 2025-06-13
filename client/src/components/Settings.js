@@ -31,8 +31,8 @@ import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const MotionPaper = motion(Paper);
-const MotionBox = motion(Box);
+const MotionPaper = motion.create(Paper);
+const MotionBox = motion.create(Box);
 
 const Settings = () => {
   const { user, updateUser } = useAuth();
