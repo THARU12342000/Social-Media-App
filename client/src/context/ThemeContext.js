@@ -110,6 +110,111 @@ const blueTheme = createTheme({
   },
 });
 
+const greenTheme = createTheme({
+  palette: {
+    mode: 'light',
+    primary: {
+      main: '#4caf50',
+      light: '#81c784',
+      dark: '#388e3c',
+    },
+    secondary: {
+      main: '#ff9800',
+      light: '#ffb74d',
+      dark: '#f57c00',
+    },
+    background: {
+      default: '#e8f5e9',
+      paper: '#ffffff',
+    },
+  },
+  typography: {
+    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+  },
+  shape: {
+    borderRadius: 16,
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+        },
+      },
+    },
+  },
+});
+
+const purpleTheme = createTheme({
+  palette: {
+    mode: 'light',
+    primary: {
+      main: '#9c27b0',
+      light: '#ba68c8',
+      dark: '#7b1fa2',
+    },
+    secondary: {
+      main: '#ff4081',
+      light: '#ff80ab',
+      dark: '#f50057',
+    },
+    background: {
+      default: '#f3e5f5',
+      paper: '#ffffff',
+    },
+  },
+  typography: {
+    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+  },
+  shape: {
+    borderRadius: 20,
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+        },
+      },
+    },
+  },
+});
+
+const sunsetTheme = createTheme({
+  palette: {
+    mode: 'light',
+    primary: {
+      main: '#ff7043',
+      light: '#ffab91',
+      dark: '#e64a19',
+    },
+    secondary: {
+      main: '#ffd54f',
+      light: '#ffe082',
+      dark: '#ffb300',
+    },
+    background: {
+      default: '#fff3e0',
+      paper: '#ffffff',
+    },
+  },
+  typography: {
+    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+  },
+  shape: {
+    borderRadius: 24,
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+        },
+      },
+    },
+  },
+});
+
 export const ThemeProvider = ({ children }) => {
   const [themeMode, setThemeMode] = useState(() => {
     const savedTheme = localStorage.getItem('themeMode');
@@ -125,6 +230,9 @@ export const ThemeProvider = ({ children }) => {
     light: lightTheme,
     dark: darkTheme,
     blue: blueTheme,
+    green: greenTheme,
+    purple: purpleTheme,
+    sunset: sunsetTheme,
   };
 
   const fontSizes = {
