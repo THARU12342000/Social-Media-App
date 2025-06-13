@@ -1,66 +1,193 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { ThemeProvider as MuiThemeProvider, createTheme } from '@mui/material';
+import { createTheme, ThemeProvider as MuiThemeProvider } from '@mui/material';
 
 const ThemeContext = createContext();
 
-export const useTheme = () => {
-  const context = useContext(ThemeContext);
-  if (!context) {
-    throw new Error('useTheme must be used within a ThemeProvider');
-  }
-  return context;
-};
+export const useTheme = () => useContext(ThemeContext);
+
+const lightTheme = createTheme({
+  palette: {
+    mode: 'light',
+    primary: {
+      main: '#1976d2',
+      light: '#42a5f5',
+      dark: '#1565c0',
+    },
+    secondary: {
+      main: '#9c27b0',
+      light: '#ba68c8',
+      dark: '#7b1fa2',
+    },
+    background: {
+      default: '#f5f5f5',
+      paper: '#ffffff',
+    },
+  },
+  typography: {
+    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+  },
+  shape: {
+    borderRadius: 8,
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+        },
+      },
+    },
+  },
+});
+
+const darkTheme = createTheme({
+  palette: {
+    mode: 'dark',
+    primary: {
+      main: '#90caf9',
+      light: '#e3f2fd',
+      dark: '#42a5f5',
+    },
+    secondary: {
+      main: '#ce93d8',
+      light: '#f3e5f5',
+      dark: '#ab47bc',
+    },
+    background: {
+      default: '#121212',
+      paper: '#1e1e1e',
+    },
+  },
+  typography: {
+    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+  },
+  shape: {
+    borderRadius: 8,
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+        },
+      },
+    },
+  },
+});
+
+const blueTheme = createTheme({
+  palette: {
+    mode: 'light',
+    primary: {
+      main: '#2196f3',
+      light: '#64b5f6',
+      dark: '#1976d2',
+    },
+    secondary: {
+      main: '#f50057',
+      light: '#ff4081',
+      dark: '#c51162',
+    },
+    background: {
+      default: '#e3f2fd',
+      paper: '#ffffff',
+    },
+  },
+  typography: {
+    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+  },
+  shape: {
+    borderRadius: 12,
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+        },
+      },
+    },
+  },
+});
 
 export const ThemeProvider = ({ children }) => {
-  const [mode, setMode] = useState(() => {
-    const savedMode = localStorage.getItem('themeMode');
-    return savedMode || 'light';
+  const [themeMode, setThemeMode] = useState(() => {
+    const savedTheme = localStorage.getItem('themeMode');
+    return savedTheme || 'light';
   });
 
-  useEffect(() => {
-    localStorage.setItem('themeMode', mode);
-  }, [mode]);
+  const [fontSize, setFontSize] = useState(() => {
+    const savedSize = localStorage.getItem('fontSize');
+    return savedSize || 'medium';
+  });
 
-  const theme = createTheme({
-    palette: {
-      mode,
-      ...(mode === 'light'
-        ? {
-            // Light mode colors
-            primary: {
-              main: '#1976d2',
-            },
-            background: {
-              default: '#f5f5f5',
-              paper: '#ffffff',
-            },
-          }
-        : {
-            // Dark mode colors
-            primary: {
-              main: '#90caf9',
-            },
-            background: {
-              default: '#121212',
-              paper: '#1e1e1e',
-            },
-          }),
+  const themes = {
+    light: lightTheme,
+    dark: darkTheme,
+    blue: blueTheme,
+  };
+
+  const fontSizes = {
+    small: {
+      h1: '2rem',
+      h2: '1.5rem',
+      h3: '1.25rem',
+      body1: '0.875rem',
+    },
+    medium: {
+      h1: '2.5rem',
+      h2: '2rem',
+      h3: '1.5rem',
+      body1: '1rem',
+    },
+    large: {
+      h1: '3rem',
+      h2: '2.5rem',
+      h3: '2rem',
+      body1: '1.25rem',
+    },
+  };
+
+  useEffect(() => {
+    localStorage.setItem('themeMode', themeMode);
+  }, [themeMode]);
+
+  useEffect(() => {
+    localStorage.setItem('fontSize', fontSize);
+  }, [fontSize]);
+
+  const currentTheme = createTheme({
+    ...themes[themeMode],
+    typography: {
+      ...themes[themeMode].typography,
+      ...fontSizes[fontSize],
     },
   });
 
-  const toggleTheme = () => {
-    setMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'));
+  const toggleTheme = (newTheme) => {
+    setThemeMode(newTheme);
   };
 
-  const setThemeMode = (newMode) => {
-    setMode(newMode);
+  const changeFontSize = (newSize) => {
+    setFontSize(newSize);
+  };
+
+  const value = {
+    themeMode,
+    fontSize,
+    toggleTheme,
+    changeFontSize,
+    availableThemes: Object.keys(themes),
+    availableFontSizes: Object.keys(fontSizes),
   };
 
   return (
-    <ThemeContext.Provider value={{ mode, toggleTheme, setThemeMode }}>
-      <MuiThemeProvider theme={theme}>
+    <ThemeContext.Provider value={value}>
+      <MuiThemeProvider theme={currentTheme}>
         {children}
       </MuiThemeProvider>
     </ThemeContext.Provider>
   );
-}; 
+};
+
+export default ThemeContext; 

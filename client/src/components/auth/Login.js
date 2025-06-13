@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { Alert, Snackbar } from '@mui/material';
 import './Auth.css';
 
 const Login = () => {
@@ -13,14 +14,16 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [successMessage, setSuccessMessage] = useState('');
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     if (user) {
-      navigate('/home');
+      console.log('User authenticated, navigating to home...', user);
+      navigate('/home', { replace: true });
     }
     if (location.state?.message) {
       setSuccessMessage(location.state.message);
-      // Clear the message from location state
       window.history.replaceState({}, document.title);
     }
     return () => clearError();
@@ -36,24 +39,43 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setErrorMessage('');
+    setShowError(false);
+    
     try {
+      console.log('Attempting login with:', { email: formData.email });
       const success = await login(formData);
+      console.log('Login response:', success);
+      
       if (success) {
-        navigate('/home');
+        console.log('Login successful, user state:', user);
+        navigate('/home', { replace: true });
+      } else {
+        setErrorMessage('Login failed. Please check your credentials.');
+        setShowError(true);
       }
     } catch (err) {
       console.error('Login error:', err);
+      setErrorMessage(err.response?.data?.message || 'An error occurred during login. Please try again.');
+      setShowError(true);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleCloseError = () => {
+    setShowError(false);
   };
 
   return (
     <div className="auth-container">
       <div className="auth-box">
         <h2>Login</h2>
-        {successMessage && <div className="success-message">{successMessage}</div>}
-        {error && <div className="error-message">{error}</div>}
+        {successMessage && (
+          <Alert severity="success" sx={{ mb: 2 }}>
+            {successMessage}
+          </Alert>
+        )}
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
             <label htmlFor="email">Email</label>
@@ -65,6 +87,7 @@ const Login = () => {
               onChange={handleChange}
               required
               placeholder="Enter your email"
+              disabled={isLoading}
             />
           </div>
           <div className="form-group">
@@ -77,6 +100,7 @@ const Login = () => {
               onChange={handleChange}
               required
               placeholder="Enter your password"
+              disabled={isLoading}
             />
             <span 
               onClick={() => navigate('/forgot-password')} 
@@ -96,6 +120,17 @@ const Login = () => {
           </span>
         </p>
       </div>
+
+      <Snackbar
+        open={showError}
+        autoHideDuration={6000}
+        onClose={handleCloseError}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseError} severity="error" sx={{ width: '100%' }}>
+          {errorMessage}
+        </Alert>
+      </Snackbar>
     </div>
   );
 };

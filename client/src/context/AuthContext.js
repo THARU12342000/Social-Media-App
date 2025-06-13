@@ -21,10 +21,14 @@ export const AuthProvider = ({ children }) => {
 
   const loadUser = async () => {
     try {
+      console.log('Loading user data...');
       const res = await axios.get('/api/auth/me');
+      console.log('User data response:', res.data);
+      
       if (res.data.success) {
         setUser(res.data.data);
       } else {
+        console.log('Failed to load user data:', res.data);
         setUser(null);
         localStorage.removeItem('token');
       }
@@ -41,6 +45,8 @@ export const AuthProvider = ({ children }) => {
     try {
       setError(null);
       const res = await axios.post('/api/auth/register', userData);
+      console.log('Register response:', res.data);
+      
       if (res.data.success) {
         localStorage.setItem('token', res.data.token);
         setUser(res.data.user);
@@ -48,6 +54,7 @@ export const AuthProvider = ({ children }) => {
       }
       return false;
     } catch (err) {
+      console.error('Registration error:', err);
       setError(err.response?.data?.message || 'Registration failed');
       return false;
     }
@@ -56,20 +63,26 @@ export const AuthProvider = ({ children }) => {
   const login = async (userData) => {
     try {
       setError(null);
+      console.log('Attempting login...');
       const res = await axios.post('/api/auth/login', userData);
+      console.log('Login response:', res.data);
+      
       if (res.data.success) {
         localStorage.setItem('token', res.data.token);
         setUser(res.data.user);
         return true;
       }
+      setError('Login failed. Please check your credentials.');
       return false;
     } catch (err) {
+      console.error('Login error:', err);
       setError(err.response?.data?.message || 'Login failed');
       return false;
     }
   };
 
   const logout = () => {
+    console.log('Logging out...');
     localStorage.removeItem('token');
     setUser(null);
     setError(null);
