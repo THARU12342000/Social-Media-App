@@ -54,28 +54,47 @@ const Profile = () => {
       setLoading(true);
       setError(null);
 
-      const [userResponse, postsResponse, friendsResponse] = await Promise.all([
-        axios.get('/api/users/me'),
-        axios.get(`/api/posts/user/${authUser.id}`),
-        axios.get('/api/friends')
-      ]);
-
-      if (userResponse?.data?.success) {
-        const updatedUser = userResponse.data.data;
-        setUser(updatedUser);
-        updateUser(updatedUser);
+      // Fetch user data
+      const userResponse = await axios.get('/api/auth/me');
+      if (!userResponse?.data?.success || !userResponse?.data?.user) {
+        throw new Error('Failed to load user data');
+      }
+      const updatedUser = userResponse.data.user;
+      
+      if (!updatedUser || !updatedUser.id) {
+        throw new Error('Invalid user data received');
       }
 
-      if (postsResponse?.data?.success) {
-        setPosts(postsResponse.data.data);
+      setUser(updatedUser);
+      updateUser(updatedUser);
+
+      // Fetch user's posts
+      try {
+        const postsResponse = await axios.get(`/api/posts/user/${updatedUser.id}`);
+        if (postsResponse?.data?.success) {
+          setPosts(postsResponse.data.data);
+        }
+      } catch (err) {
+        console.error('Error fetching posts:', err);
+        setPosts([]);
       }
 
-      if (friendsResponse?.data?.success) {
-        setFriends(friendsResponse.data.data);
+      // Fetch user's friends
+      try {
+        const friendsResponse = await axios.get('/api/friends');
+        if (friendsResponse?.data?.success) {
+          setFriends(friendsResponse.data.data);
+        }
+      } catch (err) {
+        console.error('Error fetching friends:', err);
+        setFriends([]);
       }
     } catch (err) {
       console.error('Error fetching user data:', err);
-      setError(err.response?.data?.message || 'Failed to load profile data');
+      setError(err.response?.data?.message || err.message || 'Failed to load profile data');
+      setUser(null);
+      setPosts([]);
+      setFriends([]);
     } finally {
       setLoading(false);
     }
@@ -311,9 +330,14 @@ const Profile = () => {
                     <Grid item xs={12} sm={6} md={4} key={friend._id}>
                       <Paper sx={{ p: 2, display: 'flex', alignItems: 'center' }}>
                         <Avatar
-                          src={friend.profilePicture}
+                          src={friend.profilePicture || defaultAvatar}
                           alt={friend.name}
                           sx={{ mr: 2 }}
+                          imgProps={{
+                            onError: (e) => {
+                              e.target.src = defaultAvatar;
+                            }
+                          }}
                         />
                         <Box>
                           <Typography variant="subtitle1">
