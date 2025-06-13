@@ -32,7 +32,11 @@ const ChangeProfilePicture = ({ open, onClose, onPictureUpdated }) => {
         return;
       }
       setSelectedFile(file);
-      setPreview(URL.createObjectURL(file));
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
       setError(null);
     }
   };
@@ -53,9 +57,11 @@ const ChangeProfilePicture = ({ open, onClose, onPictureUpdated }) => {
         }
       });
 
-      if (response?.data?.data) {
+      if (response?.data?.success) {
         onPictureUpdated(response.data.data);
-        onClose();
+        handleClose();
+      } else {
+        setError('Failed to update profile picture');
       }
     } catch (err) {
       console.error('Error updating profile picture:', err);
@@ -131,6 +137,7 @@ const ChangeProfilePicture = ({ open, onClose, onPictureUpdated }) => {
               variant="outlined"
               startIcon={<PhotoCameraIcon />}
               onClick={() => fileInputRef.current?.click()}
+              disabled={loading}
             >
               Select Image
             </Button>
@@ -140,7 +147,9 @@ const ChangeProfilePicture = ({ open, onClose, onPictureUpdated }) => {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
+          <Button onClick={handleClose} disabled={loading}>
+            Cancel
+          </Button>
           <Button
             type="submit"
             variant="contained"

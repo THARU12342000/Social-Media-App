@@ -23,40 +23,54 @@ import {
 } from '@mui/icons-material';
 import { formatDistanceToNow } from 'date-fns';
 import defaultAvatar from '../assets/default-avatar.svg';
+import { useAuth } from '../context/AuthContext';
 
-const Post = ({ post = {} }) => {
-  const [liked, setLiked] = useState(post?.likes?.includes(localStorage.getItem('userId')) || false);
+const Post = ({ post }) => {
+  const { user } = useAuth();
+  const [liked, setLiked] = useState(post?.likes?.includes(user?.id) || false);
   const [likesCount, setLikesCount] = useState(post?.likes?.length || 0);
   const [showComments, setShowComments] = useState(false);
   const [comment, setComment] = useState('');
   const [comments, setComments] = useState(post?.comments || []);
+  const [loading, setLoading] = useState(false);
 
-  if (!post || !post.author) {
+  if (!post || !post.user) {
     return null;
   }
 
   const handleLike = async () => {
     try {
-      await axios.post(`/api/posts/${post._id}/like`);
-      setLiked(!liked);
-      setLikesCount(liked ? likesCount - 1 : likesCount + 1);
+      setLoading(true);
+      const response = await axios.put(`/api/posts/${post._id}/like`);
+      if (response?.data?.success) {
+        setLiked(!liked);
+        setLikesCount(liked ? likesCount - 1 : likesCount + 1);
+      }
     } catch (error) {
       console.error('Error liking post:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleComment = async (e) => {
     e.preventDefault();
-    if (!comment.trim()) return;
+    if (!comment.trim() || loading) return;
 
     try {
+      setLoading(true);
       const response = await axios.post(`/api/posts/${post._id}/comment`, {
         content: comment
       });
-      setComments([...comments, response.data]);
-      setComment('');
+
+      if (response?.data?.success) {
+        setComments([...comments, response.data.data]);
+        setComment('');
+      }
     } catch (error) {
       console.error('Error posting comment:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -65,15 +79,15 @@ const Post = ({ post = {} }) => {
       <CardHeader
         avatar={
           <Avatar 
-            src={post.author?.profilePicture || defaultAvatar}
-            alt={post.author?.name || 'User'}
+            src={post.user?.profilePicture || defaultAvatar}
+            alt={post.user?.name || 'User'}
             imgProps={{
               onError: (e) => {
                 e.target.src = defaultAvatar;
               }
             }}
           >
-            {post.author?.name ? post.author.name.charAt(0).toUpperCase() : 'U'}
+            {post.user?.name ? post.user.name.charAt(0).toUpperCase() : 'U'}
           </Avatar>
         }
         action={
@@ -81,7 +95,7 @@ const Post = ({ post = {} }) => {
             <MoreVertIcon />
           </IconButton>
         }
-        title={post.author?.name || 'Unknown User'}
+        title={post.user?.name || 'Unknown User'}
         subheader={formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}
       />
       {post.content && (
@@ -109,6 +123,7 @@ const Post = ({ post = {} }) => {
         <IconButton 
           aria-label="like"
           onClick={handleLike}
+          disabled={loading}
           color={liked ? 'primary' : 'default'}
         >
           {liked ? <FavoriteIcon /> : <FavoriteBorderIcon />}
@@ -119,6 +134,7 @@ const Post = ({ post = {} }) => {
         <IconButton
           aria-label="comment"
           onClick={() => setShowComments(!showComments)}
+          disabled={loading}
           sx={{ ml: 1 }}
         >
           <CommentIcon />
@@ -126,7 +142,7 @@ const Post = ({ post = {} }) => {
         <Typography variant="body2" color="text.secondary">
           {comments.length} {comments.length === 1 ? 'comment' : 'comments'}
         </Typography>
-        <IconButton aria-label="share" sx={{ ml: 1 }}>
+        <IconButton aria-label="share" disabled={loading} sx={{ ml: 1 }}>
           <ShareIcon />
         </IconButton>
       </CardActions>
@@ -140,8 +156,18 @@ const Post = ({ post = {} }) => {
               placeholder="Write a comment..."
               value={comment}
               onChange={(e) => setComment(e.target.value)}
+              disabled={loading}
               sx={{ mb: 2 }}
             />
+            <Button
+              type="submit"
+              variant="contained"
+              size="small"
+              disabled={!comment.trim() || loading}
+              sx={{ mb: 2 }}
+            >
+              Comment
+            </Button>
           </form>
           {comments.map((comment, index) => (
             <Box key={index} sx={{ mb: 2, display: 'flex', alignItems: 'start' }}>

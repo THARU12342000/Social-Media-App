@@ -23,7 +23,7 @@ import { useTheme } from '../context/ThemeContext';
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, logout, user } = useAuth();
+  const { user, logout } = useAuth();
   const { mode, toggleTheme } = useTheme();
   const [anchorEl, setAnchorEl] = React.useState(null);
 
@@ -41,86 +41,72 @@ const Navbar = () => {
     navigate('/login');
   };
 
-  if (!isAuthenticated) {
+  if (!user) {
     return null;
   }
 
   return (
-    <AppBar position="sticky">
+    <AppBar position="static">
       <Toolbar>
-        {/* Logo/Brand */}
-        <Typography
-          variant="h6"
-          component="div"
-          sx={{ cursor: 'pointer' }}
-          onClick={() => navigate('/')}
-        >
-          Social App
+        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+          Social Media App
         </Typography>
 
-        {/* Navigation Icons */}
-        <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
-          <IconButton
-            color="inherit"
-            onClick={() => navigate('/')}
-            sx={{ mx: 1 }}
-          >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <IconButton color="inherit" onClick={() => navigate('/home')}>
             <HomeIcon />
           </IconButton>
-          <IconButton color="inherit" sx={{ mx: 1 }}>
+          <IconButton color="inherit">
             <NotificationsIcon />
           </IconButton>
-          <IconButton color="inherit" sx={{ mx: 1 }}>
+          <IconButton color="inherit">
             <MessageIcon />
           </IconButton>
-        </Box>
-
-        {/* Theme Toggle */}
-        <IconButton color="inherit" onClick={toggleTheme} sx={{ mr: 2 }}>
-          {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
-        </IconButton>
-
-        {/* User Menu */}
-        <Box>
-          <IconButton
-            size="large"
-            aria-label="account of current user"
-            aria-controls="menu-appbar"
-            aria-haspopup="true"
-            onClick={handleMenu}
-            color="inherit"
-          >
-            <Avatar
-              src={user?.profilePicture}
-              alt={user?.name}
-              sx={{ width: 32, height: 32 }}
-            >
-              {user?.name?.charAt(0)}
-            </Avatar>
+          <IconButton color="inherit" onClick={toggleTheme}>
+            {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
           </IconButton>
-          <Menu
-            id="menu-appbar"
-            anchorEl={anchorEl}
-            anchorOrigin={{
-              vertical: 'bottom',
-              horizontal: 'right',
-            }}
-            keepMounted
-            transformOrigin={{
-              vertical: 'top',
-              horizontal: 'right',
-            }}
-            open={Boolean(anchorEl)}
-            onClose={handleClose}
-          >
-            <MenuItem onClick={() => { handleClose(); navigate('/profile'); }}>
-              Profile
-            </MenuItem>
-            <MenuItem onClick={() => { handleClose(); navigate('/settings'); }}>
-              Settings
-            </MenuItem>
-            <MenuItem onClick={handleLogout}>Logout</MenuItem>
-          </Menu>
+
+          <Box>
+            <IconButton
+              size="large"
+              aria-label="account of current user"
+              aria-controls="menu-appbar"
+              aria-haspopup="true"
+              onClick={handleMenu}
+              color="inherit"
+            >
+              <Avatar
+                src={user?.profilePicture}
+                alt={user?.name}
+                sx={{ width: 32, height: 32 }}
+              >
+                {user?.name?.charAt(0)}
+              </Avatar>
+            </IconButton>
+            <Menu
+              id="menu-appbar"
+              anchorEl={anchorEl}
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'right',
+              }}
+              keepMounted
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+              open={Boolean(anchorEl)}
+              onClose={handleClose}
+            >
+              <MenuItem onClick={() => { handleClose(); navigate('/profile'); }}>
+                Profile
+              </MenuItem>
+              <MenuItem onClick={() => { handleClose(); navigate('/settings'); }}>
+                Settings
+              </MenuItem>
+              <MenuItem onClick={handleLogout}>Logout</MenuItem>
+            </Menu>
+          </Box>
         </Box>
       </Toolbar>
     </AppBar>

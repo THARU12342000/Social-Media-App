@@ -58,13 +58,14 @@ const NewsFeed = ({ initialPosts = [] }) => {
 
       const response = await axios.get(`/api/posts?page=${pageNum}&limit=10`);
       
-      if (response?.data?.data) {
+      if (response?.data?.success) {
+        const newPosts = response.data.data;
         if (pageNum === 1) {
-          setPosts([...initialPosts, ...response.data.data]);
+          setPosts([...initialPosts, ...newPosts]);
         } else {
-          setPosts(prevPosts => [...prevPosts, ...response.data.data]);
+          setPosts(prevPosts => [...prevPosts, ...newPosts]);
         }
-        setHasMore(response.data.data.length === 10);
+        setHasMore(newPosts.length === 10);
       } else {
         if (pageNum === 1) {
           setPosts(initialPosts);
@@ -80,8 +81,8 @@ const NewsFeed = ({ initialPosts = [] }) => {
       }
       setHasMore(false);
     } finally {
-      setLoading(false);
-      setLoadingMore(false);
+      if (isInitial) setLoading(false);
+      else setLoadingMore(false);
     }
   };
 
@@ -96,7 +97,9 @@ const NewsFeed = ({ initialPosts = [] }) => {
   }, [page]);
 
   useEffect(() => {
-    setPosts(initialPosts);
+    if (initialPosts.length > 0) {
+      setPosts(initialPosts);
+    }
   }, [initialPosts]);
 
   if (loading) {

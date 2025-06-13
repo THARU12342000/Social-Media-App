@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -14,13 +14,24 @@ import axios from '../utils/axios';
 
 const EditProfile = ({ open, onClose, user, onProfileUpdated }) => {
   const [formData, setFormData] = useState({
-    name: user?.name || '',
-    bio: user?.bio || '',
-    location: user?.location || '',
-    website: user?.website || ''
+    name: '',
+    bio: '',
+    location: '',
+    website: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        name: user.name || '',
+        bio: user.bio || '',
+        location: user.location || '',
+        website: user.website || ''
+      });
+    }
+  }, [user]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -35,10 +46,14 @@ const EditProfile = ({ open, onClose, user, onProfileUpdated }) => {
     try {
       setLoading(true);
       setError(null);
+
       const response = await axios.put('/api/users/profile', formData);
-      if (response?.data?.data) {
+      
+      if (response?.data?.success) {
         onProfileUpdated(response.data.data);
         onClose();
+      } else {
+        setError('Failed to update profile');
       }
     } catch (err) {
       console.error('Error updating profile:', err);
@@ -66,6 +81,7 @@ const EditProfile = ({ open, onClose, user, onProfileUpdated }) => {
               onChange={handleChange}
               fullWidth
               required
+              disabled={loading}
             />
             <TextField
               name="bio"
@@ -75,6 +91,7 @@ const EditProfile = ({ open, onClose, user, onProfileUpdated }) => {
               fullWidth
               multiline
               rows={4}
+              disabled={loading}
             />
             <TextField
               name="location"
@@ -82,6 +99,7 @@ const EditProfile = ({ open, onClose, user, onProfileUpdated }) => {
               value={formData.location}
               onChange={handleChange}
               fullWidth
+              disabled={loading}
             />
             <TextField
               name="website"
@@ -89,15 +107,19 @@ const EditProfile = ({ open, onClose, user, onProfileUpdated }) => {
               value={formData.website}
               onChange={handleChange}
               fullWidth
+              disabled={loading}
+              placeholder="https://example.com"
             />
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={onClose}>Cancel</Button>
+          <Button onClick={onClose} disabled={loading}>
+            Cancel
+          </Button>
           <Button
             type="submit"
             variant="contained"
-            disabled={loading}
+            disabled={loading || !formData.name.trim()}
             startIcon={loading && <CircularProgress size={20} />}
           >
             Save Changes

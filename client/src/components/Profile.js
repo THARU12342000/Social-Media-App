@@ -13,9 +13,7 @@ import {
   CircularProgress,
   List,
   ListItem,
-  ListItemAvatar,
   ListItemText,
-  ListItemSecondaryAction,
   IconButton,
   Link,
   Alert
@@ -25,7 +23,6 @@ import {
   PhotoCamera as PhotoCameraIcon,
   LocationOn as LocationIcon,
   Language as LanguageIcon,
-  Person as PersonIcon,
   Message as MessageIcon
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
@@ -102,7 +99,7 @@ const Profile = () => {
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
         <CircularProgress />
       </Box>
     );
@@ -146,6 +143,11 @@ const Profile = () => {
                 src={user?.profilePicture || defaultAvatar}
                 alt={user?.name}
                 sx={{ width: 150, height: 150, mb: 2 }}
+                imgProps={{
+                  onError: (e) => {
+                    e.target.src = defaultAvatar;
+                  }
+                }}
               />
               <Typography variant="h5" gutterBottom>
                 {user?.name}
@@ -208,7 +210,7 @@ const Profile = () => {
       </Paper>
 
       {/* Tabs */}
-      <Paper sx={{ mb: 3 }}>
+      <Paper>
         <Tabs
           value={activeTab}
           onChange={handleTabChange}
@@ -240,7 +242,7 @@ const Profile = () => {
               <Typography variant="h6" gutterBottom>
                 Detailed Information
               </Typography>
-              <Grid container spacing={2}>
+              <Grid container spacing={3}>
                 <Grid item xs={12} md={6}>
                   <Paper sx={{ p: 2 }}>
                     <Typography variant="subtitle1" gutterBottom>
@@ -297,7 +299,7 @@ const Profile = () => {
           {activeTab === 2 && (
             <Box>
               <Typography variant="h6" gutterBottom>
-                Friends ({friends.length})
+                Friends
               </Typography>
               {friends.length === 0 ? (
                 <Typography variant="body1" textAlign="center">
@@ -307,24 +309,19 @@ const Profile = () => {
                 <Grid container spacing={2}>
                   {friends.map((friend) => (
                     <Grid item xs={12} sm={6} md={4} key={friend._id}>
-                      <Paper sx={{ p: 2 }}>
-                        <Box display="flex" alignItems="center">
-                          <Avatar
-                            src={friend.profilePicture || defaultAvatar}
-                            alt={friend.name}
-                            sx={{ width: 50, height: 50, mr: 2 }}
-                          />
-                          <Box flex={1}>
-                            <Typography variant="subtitle1">
-                              {friend.name}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              {friend.mutualFriends} mutual friends
-                            </Typography>
-                          </Box>
-                          <IconButton size="small">
-                            <MessageIcon />
-                          </IconButton>
+                      <Paper sx={{ p: 2, display: 'flex', alignItems: 'center' }}>
+                        <Avatar
+                          src={friend.profilePicture}
+                          alt={friend.name}
+                          sx={{ mr: 2 }}
+                        />
+                        <Box>
+                          <Typography variant="subtitle1">
+                            {friend.name}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            {friend.email}
+                          </Typography>
                         </Box>
                       </Paper>
                     </Grid>

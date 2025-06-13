@@ -72,7 +72,7 @@ const CreatePost = ({ onPostCreated }) => {
         },
       });
 
-      if (response && response.data) {
+      if (response?.data?.success) {
         // Clear form
         setContent('');
         setImage(null);
@@ -80,9 +80,9 @@ const CreatePost = ({ onPostCreated }) => {
         setPrivacy('public');
         setError(null);
 
-        // Notify parent component
+        // Notify parent component with the new post
         if (onPostCreated) {
-          onPostCreated(response.data);
+          onPostCreated(response.data.data);
         }
       }
     } catch (err) {
