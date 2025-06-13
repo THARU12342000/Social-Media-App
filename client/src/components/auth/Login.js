@@ -34,10 +34,38 @@ const Login = () => {
       ...formData,
       [e.target.name]: e.target.value
     });
+    setErrorMessage('');
+    setShowError(false);
+  };
+
+  const validateForm = () => {
+    if (!formData.email) {
+      setErrorMessage('Please enter your email address');
+      setShowError(true);
+      return false;
+    }
+    if (!formData.password) {
+      setErrorMessage('Please enter your password');
+      setShowError(true);
+      return false;
+    }
+    if (!formData.email.includes('@')) {
+      setErrorMessage('Please enter a valid email address');
+      setShowError(true);
+      return false;
+    }
+    if (formData.password.length < 6) {
+      setErrorMessage('Password must be at least 6 characters long');
+      setShowError(true);
+      return false;
+    }
+    return true;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
+
     setIsLoading(true);
     setErrorMessage('');
     setShowError(false);
@@ -51,12 +79,18 @@ const Login = () => {
         console.log('Login successful, user state:', user);
         navigate('/home', { replace: true });
       } else {
-        setErrorMessage('Login failed. Please check your credentials.');
+        setErrorMessage('Invalid email or password. Please try again.');
         setShowError(true);
       }
     } catch (err) {
       console.error('Login error:', err);
-      setErrorMessage(err.response?.data?.message || 'An error occurred during login. Please try again.');
+      if (err.response?.status === 401) {
+        setErrorMessage('Invalid email or password. Please try again.');
+      } else if (err.response?.status === 404) {
+        setErrorMessage('Account not found. Please check your email or register.');
+      } else {
+        setErrorMessage('An error occurred during login. Please try again.');
+      }
       setShowError(true);
     } finally {
       setIsLoading(false);

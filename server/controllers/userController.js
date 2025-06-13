@@ -71,13 +71,17 @@ const updateProfilePicture = asyncHandler(async (req, res) => {
 // @route   GET /api/users/suggestions
 // @access  Private
 const getSuggestions = asyncHandler(async (req, res) => {
-  // Get users that are not friends and not the current user
+  // Get current user
   const user = await User.findById(req.user.id);
-  const friends = user.friends || [];
-  
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+
+  // Get users that are not friends and not the current user
   const suggestions = await User.find({
     _id: { 
-      $nin: [...friends, req.user.id]
+      $nin: [...user.friends, req.user.id]
     }
   })
   .select('name profilePicture')
@@ -87,7 +91,7 @@ const getSuggestions = asyncHandler(async (req, res) => {
   const suggestionsWithMutualFriends = await Promise.all(
     suggestions.map(async (suggestion) => {
       const mutualFriends = await User.countDocuments({
-        _id: { $in: friends },
+        _id: { $in: user.friends },
         friends: suggestion._id
       });
       return {
