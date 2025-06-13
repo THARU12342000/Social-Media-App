@@ -14,13 +14,17 @@ import {
   Home as HomeIcon,
   Notifications as NotificationsIcon,
   Message as MessageIcon,
+  Brightness4 as DarkModeIcon,
+  Brightness7 as LightModeIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
 const Navbar = () => {
   const navigate = useNavigate();
   const { isAuthenticated, logout, user } = useAuth();
+  const { mode, toggleTheme } = useTheme();
   const [anchorEl, setAnchorEl] = React.useState(null);
 
   const handleMenu = (event) => {
@@ -70,6 +74,11 @@ const Navbar = () => {
             <MessageIcon />
           </IconButton>
         </Box>
+
+        {/* Theme Toggle */}
+        <IconButton color="inherit" onClick={toggleTheme} sx={{ mr: 2 }}>
+          {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
+        </IconButton>
 
         {/* User Menu */}
         <Box>

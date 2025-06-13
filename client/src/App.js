@@ -1,117 +1,63 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { CssBaseline } from '@mui/material';
+import { ThemeProvider } from './context/ThemeContext';
+import { AuthProvider } from './context/AuthContext';
+import PrivateRoute from './components/PrivateRoute';
+import Navbar from './components/Navbar';
+import Home from './components/Home';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
-import ForgotPassword from './components/auth/ForgotPassword';
-import ResetPassword from './components/auth/ResetPassword';
-import Home from './components/Home';
+import Profile from './components/Profile';
+import Settings from './components/Settings';
 import './App.css';
-
-// Protected Route Component
-const ProtectedRoute = ({ children }) => {
-  const { user, loading } = useAuth();
-
-  if (loading) {
-    return <div className="loading-container">Loading...</div>;
-  }
-
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return children;
-};
-
-// Public Route Component (redirects to home if already authenticated)
-const PublicRoute = ({ children }) => {
-  const { user, loading } = useAuth();
-
-  if (loading) {
-    return <div className="loading-container">Loading...</div>;
-  }
-
-  if (user) {
-    return <Navigate to="/home" replace />;
-  }
-
-  return children;
-};
-
-// Landing Route Component (handles initial routing)
-const LandingRoute = () => {
-  const { user, loading } = useAuth();
-
-  if (loading) {
-    return <div className="loading-container">Loading...</div>;
-  }
-
-  if (user) {
-    return <Navigate to="/home" replace />;
-  }
-
-  return <Navigate to="/register" replace />;
-};
 
 const App = () => {
   return (
-    <AuthProvider>
-      <Router>
-        <div className="app">
+    <ThemeProvider>
+      <AuthProvider>
+        <CssBaseline />
+        <Router>
+          <Navbar />
           <Routes>
-            {/* Landing Route */}
-            <Route path="/" element={<LandingRoute />} />
-
-            {/* Public Routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
             <Route
-              path="/register"
+              path="/"
               element={
-                <PublicRoute>
-                  <Register />
-                </PublicRoute>
+                <PrivateRoute>
+                  <Home />
+                </PrivateRoute>
               }
             />
-            <Route
-              path="/login"
-              element={
-                <PublicRoute>
-                  <Login />
-                </PublicRoute>
-              }
-            />
-            <Route
-              path="/forgot-password"
-              element={
-                <PublicRoute>
-                  <ForgotPassword />
-                </PublicRoute>
-              }
-            />
-            <Route
-              path="/reset-password/:resettoken"
-              element={
-                <PublicRoute>
-                  <ResetPassword />
-                </PublicRoute>
-              }
-            />
-
-            {/* Protected Routes */}
             <Route
               path="/home"
               element={
-                <ProtectedRoute>
+                <PrivateRoute>
                   <Home />
-                </ProtectedRoute>
+                </PrivateRoute>
               }
             />
-
-            {/* Catch all route */}
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route
+              path="/profile"
+              element={
+                <PrivateRoute>
+                  <Profile />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <PrivateRoute>
+                  <Settings />
+                </PrivateRoute>
+              }
+            />
           </Routes>
-        </div>
-      </Router>
-    </AuthProvider>
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
   );
 };
 

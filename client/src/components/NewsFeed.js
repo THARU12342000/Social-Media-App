@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from '../utils/axios';
 import { Box, Container, Grid, CircularProgress, Typography, Paper } from '@mui/material';
 import Post from './Post';
-import CreatePost from './CreatePost';
 import FriendSuggestions from './FriendSuggestions';
 import { Home as HomeIcon, People as PeopleIcon, Bookmark as BookmarkIcon } from '@mui/icons-material';
 
@@ -32,8 +31,8 @@ const QuickLink = ({ icon: Icon, text, active }) => (
   </Box>
 );
 
-const NewsFeed = () => {
-  const [posts, setPosts] = useState([]);
+const NewsFeed = ({ initialPosts = [] }) => {
+  const [posts, setPosts] = useState(initialPosts);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
@@ -61,14 +60,14 @@ const NewsFeed = () => {
       
       if (response?.data?.data) {
         if (pageNum === 1) {
-          setPosts(response.data.data);
+          setPosts([...initialPosts, ...response.data.data]);
         } else {
           setPosts(prevPosts => [...prevPosts, ...response.data.data]);
         }
         setHasMore(response.data.data.length === 10);
       } else {
         if (pageNum === 1) {
-          setPosts([]);
+          setPosts(initialPosts);
         }
         setHasMore(false);
       }
@@ -77,7 +76,7 @@ const NewsFeed = () => {
       console.error('Error fetching posts:', err);
       setError('Failed to load posts. Please try again later.');
       if (pageNum === 1) {
-        setPosts([]);
+        setPosts(initialPosts);
       }
       setHasMore(false);
     } finally {
@@ -96,9 +95,9 @@ const NewsFeed = () => {
     }
   }, [page]);
 
-  const handlePostCreated = (newPost) => {
-    setPosts(prevPosts => [newPost, ...prevPosts]);
-  };
+  useEffect(() => {
+    setPosts(initialPosts);
+  }, [initialPosts]);
 
   if (loading) {
     return (
@@ -133,8 +132,6 @@ const NewsFeed = () => {
 
         {/* Main Content */}
         <Grid item xs={12} md={6}>
-          <CreatePost onPostCreated={handlePostCreated} />
-          
           {posts.length === 0 ? (
             <Typography variant="body1" textAlign="center" sx={{ mt: 4 }}>
               No posts to show. Start following people or create your first post!
@@ -161,8 +158,8 @@ const NewsFeed = () => {
         {/* Right Sidebar */}
         <Grid item xs={12} md={3}>
           <Paper sx={{ position: { md: 'sticky' }, top: 20, p: 2 }}>
-            <Typography variant="h6" gutterBottom sx={{ px: 1 }}>
-              Suggested Friends
+            <Typography variant="h6" gutterBottom sx={{ px: 1.5, mb: 2 }}>
+              Friend Suggestions
             </Typography>
             <FriendSuggestions />
           </Paper>
