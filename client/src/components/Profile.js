@@ -34,7 +34,7 @@ import defaultAvatar from '../assets/default-avatar.svg';
 
 const Profile = () => {
   const { user: authUser, updateUser } = useAuth();
-  const [user, setUser] = useState(authUser);
+  const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState(0);
   const [posts, setPosts] = useState([]);
   const [friends, setFriends] = useState([]);
@@ -42,14 +42,22 @@ const Profile = () => {
   const [error, setError] = useState(null);
   const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [changePictureOpen, setChangePictureOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    if (authUser) {
+    setIsMounted(true);
+    return () => setIsMounted(false);
+  }, []);
+
+  useEffect(() => {
+    if (isMounted && authUser) {
       fetchUserData();
     }
-  }, [authUser]);
+  }, [isMounted, authUser]);
 
   const fetchUserData = async () => {
+    if (!isMounted) return;
+
     try {
       setLoading(true);
       setError(null);
@@ -65,38 +73,48 @@ const Profile = () => {
         throw new Error('Invalid user data received');
       }
 
-      setUser(updatedUser);
-      updateUser(updatedUser);
+      if (isMounted) {
+        setUser(updatedUser);
+        updateUser(updatedUser);
 
-      // Fetch user's posts
-      try {
-        const postsResponse = await axios.get(`/api/posts/user/${updatedUser.id}`);
-        if (postsResponse?.data?.success) {
-          setPosts(postsResponse.data.data);
+        // Fetch user's posts
+        try {
+          const postsResponse = await axios.get(`/api/posts/user/${updatedUser.id}`);
+          if (postsResponse?.data?.success && isMounted) {
+            setPosts(postsResponse.data.data);
+          }
+        } catch (err) {
+          console.error('Error fetching posts:', err);
+          if (isMounted) {
+            setPosts([]);
+          }
         }
-      } catch (err) {
-        console.error('Error fetching posts:', err);
-        setPosts([]);
-      }
 
-      // Fetch user's friends
-      try {
-        const friendsResponse = await axios.get('/api/friends');
-        if (friendsResponse?.data?.success) {
-          setFriends(friendsResponse.data.data);
+        // Fetch user's friends
+        try {
+          const friendsResponse = await axios.get('/api/friends');
+          if (friendsResponse?.data?.success && isMounted) {
+            setFriends(friendsResponse.data.data);
+          }
+        } catch (err) {
+          console.error('Error fetching friends:', err);
+          if (isMounted) {
+            setFriends([]);
+          }
         }
-      } catch (err) {
-        console.error('Error fetching friends:', err);
-        setFriends([]);
       }
     } catch (err) {
       console.error('Error fetching user data:', err);
-      setError(err.response?.data?.message || err.message || 'Failed to load profile data');
-      setUser(null);
-      setPosts([]);
-      setFriends([]);
+      if (isMounted) {
+        setError(err.response?.data?.message || err.message || 'Failed to load profile data');
+        setUser(null);
+        setPosts([]);
+        setFriends([]);
+      }
     } finally {
-      setLoading(false);
+      if (isMounted) {
+        setLoading(false);
+      }
     }
   };
 
@@ -116,9 +134,27 @@ const Profile = () => {
     setChangePictureOpen(false);
   };
 
+  if (!isMounted) {
+    return null;
+  }
+
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
+      <Box 
+        display="flex" 
+        justifyContent="center" 
+        alignItems="center" 
+        minHeight="80vh"
+        sx={{ 
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'background.paper',
+          zIndex: 1000
+        }}
+      >
         <CircularProgress />
       </Box>
     );

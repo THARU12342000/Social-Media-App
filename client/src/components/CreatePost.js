@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -11,7 +11,8 @@ import {
   Select,
   MenuItem,
   Alert,
-  Snackbar
+  Snackbar,
+  CircularProgress
 } from '@mui/material';
 import {
   Image as ImageIcon,
@@ -31,6 +32,12 @@ const CreatePost = ({ onPostCreated }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showError, setShowError] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+    return () => setIsMounted(false);
+  }, []);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -103,6 +110,10 @@ const CreatePost = ({ onPostCreated }) => {
     { value: 'friends', label: 'Friends', icon: <PeopleIcon /> },
     { value: 'private', label: 'Private', icon: <LockIcon /> },
   ];
+
+  if (!isMounted) {
+    return null;
+  }
 
   return (
     <>
@@ -237,6 +248,25 @@ const CreatePost = ({ onPostCreated }) => {
           {error}
         </Alert>
       </Snackbar>
+
+      {loading && (
+        <Box 
+          sx={{ 
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1000
+          }}
+        >
+          <CircularProgress />
+        </Box>
+      )}
     </>
   );
 };
