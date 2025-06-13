@@ -12,12 +12,19 @@ import Profile from './components/Profile';
 import Settings from './components/Settings';
 import './App.css';
 
+const router = {
+  future: {
+    v7_startTransition: true,
+    v7_relativeSplatPath: true
+  }
+};
+
 const App = () => {
   return (
     <ThemeProvider>
       <AuthProvider>
         <CssBaseline />
-        <Router>
+        <Router future={router.future}>
           <Navbar />
           <Routes>
             <Route path="/login" element={<Login />} />

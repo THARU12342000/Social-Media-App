@@ -16,7 +16,7 @@ const Login = () => {
 
   useEffect(() => {
     if (user) {
-      navigate('/');
+      navigate('/home');
     }
     if (location.state?.message) {
       setSuccessMessage(location.state.message);
@@ -37,8 +37,10 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      await login(formData);
-      navigate('/');
+      const success = await login(formData);
+      if (success) {
+        navigate('/home');
+      }
     } catch (err) {
       console.error('Login error:', err);
     } finally {

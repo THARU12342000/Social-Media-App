@@ -18,7 +18,7 @@ import {
   ListItemSecondaryAction,
   IconButton,
   Link,
-  Chip
+  Alert
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -47,32 +47,38 @@ const Profile = () => {
   const [changePictureOpen, setChangePictureOpen] = useState(false);
 
   useEffect(() => {
-    fetchUserData();
-  }, []);
+    if (authUser) {
+      fetchUserData();
+    }
+  }, [authUser]);
 
   const fetchUserData = async () => {
     try {
       setLoading(true);
+      setError(null);
+
       const [userResponse, postsResponse, friendsResponse] = await Promise.all([
         axios.get('/api/users/me'),
         axios.get(`/api/posts/user/${authUser.id}`),
         axios.get('/api/friends')
       ]);
 
-      if (userResponse?.data?.data) {
-        setUser(userResponse.data.data);
-        updateUser(userResponse.data.data);
+      if (userResponse?.data?.success) {
+        const updatedUser = userResponse.data.data;
+        setUser(updatedUser);
+        updateUser(updatedUser);
       }
-      if (postsResponse?.data?.data) {
+
+      if (postsResponse?.data?.success) {
         setPosts(postsResponse.data.data);
       }
-      if (friendsResponse?.data?.data) {
+
+      if (friendsResponse?.data?.success) {
         setFriends(friendsResponse.data.data);
       }
-      setError(null);
     } catch (err) {
       console.error('Error fetching user data:', err);
-      setError('Failed to load profile data');
+      setError(err.response?.data?.message || 'Failed to load profile data');
     } finally {
       setLoading(false);
     }
@@ -85,11 +91,13 @@ const Profile = () => {
   const handleProfileUpdated = (updatedUser) => {
     setUser(updatedUser);
     updateUser(updatedUser);
+    setEditProfileOpen(false);
   };
 
   const handlePictureUpdated = (updatedUser) => {
     setUser(updatedUser);
     updateUser(updatedUser);
+    setChangePictureOpen(false);
   };
 
   if (loading) {
@@ -97,6 +105,33 @@ const Profile = () => {
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
         <CircularProgress />
       </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Container maxWidth="lg" sx={{ mt: 4 }}>
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+        <Button
+          variant="contained"
+          onClick={fetchUserData}
+          sx={{ mt: 2 }}
+        >
+          Retry
+        </Button>
+      </Container>
+    );
+  }
+
+  if (!user) {
+    return (
+      <Container maxWidth="lg" sx={{ mt: 4 }}>
+        <Alert severity="warning">
+          Please log in to view your profile
+        </Alert>
+      </Container>
     );
   }
 
@@ -189,9 +224,7 @@ const Profile = () => {
         <Box p={3}>
           {activeTab === 0 && (
             <>
-              {error ? (
-                <Typography color="error">{error}</Typography>
-              ) : posts.length === 0 ? (
+              {posts.length === 0 ? (
                 <Typography variant="body1" textAlign="center">
                   No posts yet
                 </Typography>

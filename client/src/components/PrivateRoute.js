@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { CircularProgress, Box } from '@mui/material';
 
 const PrivateRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { user, loading } = useAuth();
 
   if (loading) {
     return (
@@ -14,7 +14,7 @@ const PrivateRoute = ({ children }) => {
     );
   }
 
-  if (!isAuthenticated) {
+  if (!user) {
     return <Navigate to="/login" replace />;
   }
 
